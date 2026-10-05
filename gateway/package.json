@@ -1,0 +1,16 @@
+{
+	"name": "@snake/gateway",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "bun --watch src/index.ts",
+		"start": "bun src/index.ts"
+	},
+	"dependencies": {
+		"@hono/swagger-ui": "^0.6.1",
+		"@hono/zod-openapi": "^1.6.3",
+		"@snake/shared": "workspace:*",
+		"hono": "^4.13.12",
+		"zod": "^4.6.5"
+	}
+}

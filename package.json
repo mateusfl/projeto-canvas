@@ -1,0 +1,25 @@
+{
+	"name": "snake-arena",
+	"private": true,
+	"type": "module",
+	"workspaces": [
+		"shared",
+		"players-api",
+		"game-api",
+		"gateway",
+		"client"
+	],
+	"scripts": {
+		"dev": "bun run --filter '@snake/*' dev",
+		"start": "bun run --filter '@snake/*' start",
+		"test": "bun test",
+		"typecheck": "tsc --noEmit",
+		"check": "biome check",
+		"format": "biome check --write"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.15",
+		"@types/bun": "^1.4.2",
+		"typescript": "^7.0.2"
+	}
+}

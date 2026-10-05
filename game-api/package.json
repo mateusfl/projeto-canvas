@@ -1,0 +1,13 @@
+{
+	"name": "@snake/game-api",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "bun --watch src/index.ts",
+		"start": "bun src/index.ts"
+	},
+	"dependencies": {
+		"@snake/shared": "workspace:*",
+		"hono": "^4.13.12"
+	}
+}

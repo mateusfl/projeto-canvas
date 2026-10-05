@@ -1,0 +1,237 @@
+:root {
+	color-scheme: dark;
+	--bg: #0b1020;
+	--panel: rgba(15, 23, 42, 0.85);
+	--border: #334155;
+	--text: #e2e8f0;
+	--muted: #94a3b8;
+	--accent: #22c55e;
+	--danger: #f87171;
+	font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+	height: 100%;
+	margin: 0;
+}
+
+body {
+	background: var(--bg);
+	color: var(--text);
+	overflow: hidden;
+}
+
+button {
+	padding: 12px 16px;
+	border: 0;
+	border-radius: 8px;
+	background: var(--accent);
+	color: #052e16;
+	font: inherit;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+button:disabled {
+	opacity: 0.6;
+	cursor: wait;
+}
+
+button.ghost {
+	background: transparent;
+	color: var(--muted);
+	border: 1px solid var(--border);
+}
+
+.join {
+	display: grid;
+	place-items: center;
+	height: 100%;
+	padding: 16px;
+}
+
+.join-card,
+.dead-card {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	width: min(100%, 360px);
+	padding: 28px;
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	background: var(--panel);
+}
+
+.join-card h1,
+.dead-card h1 {
+	margin: 0;
+	font-size: 1.6rem;
+}
+
+.join-card p,
+.dead-card p {
+	margin: 0;
+	color: var(--muted);
+}
+
+.join-card label {
+	margin-top: 8px;
+	font-size: 0.85rem;
+	color: var(--muted);
+}
+
+.join-card input {
+	padding: 12px;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	background: #0f172a;
+	color: var(--text);
+	font: inherit;
+}
+
+.join-card input:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 1px;
+}
+
+.join-card .error {
+	color: var(--danger);
+}
+
+.screen {
+	height: 100%;
+}
+
+.counter {
+	display: inline-block;
+	min-width: 1.5ch;
+	font-variant-numeric: tabular-nums;
+}
+
+.game {
+	position: relative;
+	height: 100%;
+	touch-action: none;
+}
+
+.game canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.hud {
+	position: absolute;
+	top: 16px;
+	padding: 10px 14px;
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	background: var(--panel);
+	font-size: 0.9rem;
+	pointer-events: none;
+}
+
+.hud-me {
+	left: 16px;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.hud-top {
+	right: 16px;
+	min-width: 180px;
+}
+
+.hud-top h2 {
+	margin: 0 0 6px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--muted);
+}
+
+.hud-top ol {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.hud-top li {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-variant-numeric: tabular-nums;
+}
+
+.name {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.swatch {
+	flex: none;
+	width: 12px;
+	height: 12px;
+	border-radius: 3px;
+}
+
+.overlay {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	padding: 16px;
+	background: rgba(2, 6, 23, 0.6);
+}
+
+.dead-card .result {
+	color: var(--text);
+}
+
+.dead-card table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.9rem;
+	font-variant-numeric: tabular-nums;
+}
+
+.dead-card caption {
+	padding-bottom: 6px;
+	text-align: left;
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--muted);
+}
+
+.dead-card td {
+	padding: 4px 0;
+	border-top: 1px solid var(--border);
+}
+
+.dead-card td:first-child {
+	width: 28px;
+	color: var(--muted);
+}
+
+.dead-card td:last-child {
+	text-align: right;
+}
+
+.dead-card tr.me td {
+	color: var(--accent);
+	font-weight: 700;
+}

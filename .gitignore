@@ -1,0 +1,12 @@
+node_modules
+dist
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.env
+.env.*
+!.env.example
+
+*.tldraw
+TODO.md
+PLANO.md
