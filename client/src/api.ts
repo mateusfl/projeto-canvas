@@ -1,4 +1,11 @@
-export type Link = { href: string; method?: string; templated?: boolean };
+import { CosmeticsClient, type SoapExchange } from "@snake/shared/cosmetics";
+
+export type Link = {
+	href: string;
+	method?: string;
+	templated?: boolean;
+	type?: string;
+};
 export type Links = Record<string, Link>;
 
 export type Root = { name: string; _links: Links };
@@ -85,6 +92,16 @@ export async function request<T>(
 export async function createSession(name: string): Promise<Session> {
 	const root = await request<Root>({ href: `${gatewayUrl()}/` });
 	return request<Session>(follow(root._links, "sessions"), { body: { name } });
+}
+
+export function cosmeticsClient(
+	session: Session,
+	onExchange?: (exchange: SoapExchange) => void,
+): CosmeticsClient {
+	return new CosmeticsClient(
+		follow(session._links, "cosmetics").href,
+		onExchange,
+	);
 }
 
 /** Preenche o link templado `play` com o JWT. */

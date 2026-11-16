@@ -17,6 +17,7 @@ import { burnSeconds, Scene } from "./scene.ts";
 
 type Props = {
 	session: Session;
+	onWardrobe: () => void;
 	/** Volta para a tela de entrada, opcionalmente com o motivo. */
 	onExit: (reason?: string) => void;
 };
@@ -57,7 +58,7 @@ export const PRESSABLE = {
 // A API de jogo registra a partida em paralelo ao aviso de eliminação.
 const RANKING_DELAY_MS = 300;
 
-export function Game({ session, onExit }: Props) {
+export function Game({ session, onWardrobe, onExit }: Props) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const socketRef = useRef<WebSocket | null>(null);
 	const onExitRef = useRef(onExit);
@@ -291,6 +292,14 @@ export function Game({ session, onExit }: Props) {
 
 							<motion.button type="button" onClick={respawn} {...PRESSABLE}>
 								Jogar de novo
+							</motion.button>
+							<motion.button
+								type="button"
+								className="ghost"
+								onClick={onWardrobe}
+								{...PRESSABLE}
+							>
+								Trocar acessórios
 							</motion.button>
 							<motion.button
 								type="button"

@@ -248,4 +248,30 @@ describe("Arena", () => {
 			expect(snake.cells).toHaveLength(3);
 		}
 	});
+
+	test("mantém os acessórios ao renascer e os esquece quando o jogador sai", () => {
+		const arena = emptyArena();
+		const accessoriesOf = () =>
+			arena.snakeViews().find((snake) => snake.id === 1)?.accessories;
+
+		arena.dress(1, { head: "crown", face: null });
+		arena.spawn(player(1));
+		expect(accessoriesOf()).toEqual({ head: null, face: null });
+
+		arena.dress(1, { head: "crown", face: null });
+		arena.place(
+			player(1),
+			[
+				[2, 5],
+				[1, 5],
+				[0, 5],
+			],
+			"right",
+		);
+		expect(accessoriesOf()).toEqual({ head: "crown", face: null });
+
+		arena.leave(1);
+		arena.spawn(player(1));
+		expect(accessoriesOf()).toEqual({ head: null, face: null });
+	});
 });

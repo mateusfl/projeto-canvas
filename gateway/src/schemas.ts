@@ -6,6 +6,10 @@ export const LinkSchema = z
 		href: z.string().openapi({ example: "http://localhost:3000/arenas/1" }),
 		method: z.string().optional().openapi({ example: "GET" }),
 		templated: z.boolean().optional(),
+		type: z
+			.string()
+			.optional()
+			.openapi({ description: "Tipo de mídia, quando não é JSON." }),
 	})
 	.openapi("Link");
 

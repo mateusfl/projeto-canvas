@@ -1,5 +1,6 @@
 import type { ArenaInfo, Cell, SnakeView } from "@snake/shared";
 import { animate } from "motion";
+import { drawHeadDetails } from "./head.ts";
 
 export type Frame = { snakes: SnakeView[]; food: Cell[] };
 
@@ -203,7 +204,17 @@ export class Scene {
 				ctx.lineWidth = 2;
 				ctx.stroke();
 			}
-			this.drawEyes(ctx, snake, at, size);
+			const dir = this.facing(snake);
+			if (dir) {
+				drawHeadDetails(ctx, {
+					cx: at[0] + size / 2,
+					cy: at[1] + size / 2,
+					size,
+					dir,
+					accessories: snake.accessories,
+					now,
+				});
+			}
 
 			for (const pulse of this.pulses) {
 				if (pulse.snakeId !== snake.id) continue;
@@ -284,32 +295,13 @@ export class Scene {
 		return this.camera;
 	}
 
-	private drawEyes(
-		ctx: CanvasRenderingContext2D,
-		snake: SnakeView,
-		[sx, sy]: Cell,
-		size: number,
-	): void {
+	private facing(snake: SnakeView): [number, number] | null {
 		const [head, neck] = snake.cells;
-		if (!head || !neck) return;
-		const dx = Math.sign(wrapDelta(head[0] - neck[0], this.arena.width));
-		const dy = Math.sign(wrapDelta(head[1] - neck[1], this.arena.height));
-		const cx = sx + size / 2 + dx * size * 0.14;
-		const cy = sy + size / 2 + dy * size * 0.14;
-
-		ctx.fillStyle = BACKGROUND;
-		for (const side of [-1, 1]) {
-			ctx.beginPath();
-			// Os olhos ficam lado a lado, perpendiculares à direção do movimento.
-			ctx.arc(
-				cx - dy * side * size * 0.18,
-				cy + dx * side * size * 0.18,
-				size * 0.09,
-				0,
-				Math.PI * 2,
-			);
-			ctx.fill();
-		}
+		if (!head || !neck) return null;
+		return [
+			Math.sign(wrapDelta(head[0] - neck[0], this.arena.width)),
+			Math.sign(wrapDelta(head[1] - neck[1], this.arena.height)),
+		];
 	}
 
 	private drawMinimap(

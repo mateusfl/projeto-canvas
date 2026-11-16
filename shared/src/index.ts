@@ -18,6 +18,12 @@ export type ArenaInfo = {
 	tickMs: number;
 };
 
+export type Slot = "head" | "face";
+
+export type Accessories = Record<Slot, string | null>;
+
+export const NO_ACCESSORIES: Accessories = { head: null, face: null };
+
 export type SnakeView = {
 	id: number;
 	name: string;
@@ -25,6 +31,7 @@ export type SnakeView = {
 	/** Células da cobrinha, da cabeça para a cauda. */
 	cells: Cell[];
 	kills: number;
+	accessories: Accessories;
 };
 
 export type ClientMessage =

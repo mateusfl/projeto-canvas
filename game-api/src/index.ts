@@ -4,6 +4,7 @@ import {
 	type PlayerIdentity,
 	type ServerMessage,
 } from "@snake/shared";
+import { CosmeticsClient } from "@snake/shared/cosmetics";
 import type { ServerWebSocket } from "bun";
 import { Hono } from "hono";
 import { Arena, type Death } from "./arena.ts";
@@ -12,6 +13,8 @@ const PORT = Number(process.env.GAME_API_PORT ?? 3002);
 // Só o gateway, na mesma máquina, acessa esta API.
 const HOST = process.env.GAME_API_HOST ?? "127.0.0.1";
 const PLAYERS_API_URL = process.env.PLAYERS_API_URL ?? "http://127.0.0.1:3001";
+const COSMETICS_API_URL =
+	process.env.COSMETICS_API_URL ?? "http://127.0.0.1:3003/";
 
 const TICK_MS = Number(process.env.TICK_MS ?? 110);
 const GRID_WIDTH = Number(process.env.GRID_WIDTH ?? 100);
@@ -67,6 +70,17 @@ function reportMatch(arenaId: string, death: Death): void {
 			if (!res.ok) console.error(`Falha ao registrar partida: ${res.status}`);
 		})
 		.catch((err) => console.error("Falha ao registrar partida:", err));
+}
+
+const cosmetics = new CosmeticsClient(COSMETICS_API_URL);
+
+function dress(room: Room, playerId: number): void {
+	cosmetics
+		.getCustomization(playerId)
+		.then(({ head, face }) => room.arena.dress(playerId, { head, face }))
+		.catch((err: Error) =>
+			console.error(`Falha ao buscar acessórios: ${err.message}`),
+		);
 }
 
 function roomView(room: Room) {
@@ -163,6 +177,7 @@ const server = Bun.serve({
 			current?.close(CloseCode.Replaced, "Conectado em outra aba.");
 			ws.subscribe(topic(arenaId));
 			if (!room.arena.isAlive(player.id)) room.arena.spawn(player);
+			dress(room, player.id);
 			send(ws, {
 				type: "welcome",
 				playerId: player.id,
@@ -188,6 +203,7 @@ const server = Bun.serve({
 			} else if (message.type === "respawn") {
 				if (!room.arena.isAlive(ws.data.player.id)) {
 					room.arena.spawn(ws.data.player);
+					dress(room, ws.data.player.id);
 				}
 			}
 		},

@@ -1,9 +1,11 @@
-import type {
-	ArenaInfo,
-	Cell,
-	Direction,
-	PlayerIdentity,
-	SnakeView,
+import {
+	type Accessories,
+	type ArenaInfo,
+	type Cell,
+	type Direction,
+	NO_ACCESSORIES,
+	type PlayerIdentity,
+	type SnakeView,
 } from "@snake/shared";
 
 const DELTAS: Record<Direction, Cell> = {
@@ -65,6 +67,7 @@ export class Arena {
 
 	private readonly random: () => number;
 	private readonly snakes = new Map<number, Snake>();
+	private readonly outfits = new Map<number, Accessories>();
 	/** Comidas indexadas pela chave da célula (`y * width + x`). */
 	private readonly food = new Set<number>();
 
@@ -130,7 +133,12 @@ export class Arena {
 	}
 
 	/** Remove o jogador que saiu da partida; a cobrinha dele vira comida. */
+	dress(playerId: number, accessories: Accessories): void {
+		if (this.snakes.has(playerId)) this.outfits.set(playerId, accessories);
+	}
+
 	leave(playerId: number, now = Date.now()): Death | null {
+		this.outfits.delete(playerId);
 		const snake = this.snakes.get(playerId);
 		if (!snake) return null;
 		this.snakes.delete(playerId);
@@ -191,6 +199,7 @@ export class Arena {
 			color: snake.player.color,
 			cells: snake.cells,
 			kills: snake.kills,
+			accessories: this.outfits.get(snake.player.id) ?? NO_ACCESSORIES,
 		}));
 	}
 

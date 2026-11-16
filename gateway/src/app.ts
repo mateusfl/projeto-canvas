@@ -1,10 +1,21 @@
 import { swaggerUI } from "@hono/swagger-ui";
-import { createRoute, OpenAPIHono, type z } from "@hono/zod-openapi";
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { nameKey } from "@snake/shared";
+import { SOAP_ENV_NS } from "@snake/shared/soap";
 import type { Context } from "hono";
 import { cors } from "hono/cors";
 import { type Env, requireAuth } from "./auth.ts";
 import { DEFAULT_ARENA_ID, GAME_API_URL, PLAYERS_API_URL } from "./config.ts";
+import {
+	COSMETICS_PATH,
+	proxySoap,
+	proxyWsdl,
+	SOAP_FAULT_EXAMPLE,
+	SOAP_REQUEST_EXAMPLES,
+	SOAP_RESPONSE_EXAMPLE,
+	SOAP_UNAVAILABLE_EXAMPLE,
+	WSDL_EXAMPLE,
+} from "./cosmetics.ts";
 import { ApiError, upstream } from "./http.ts";
 import {
 	ArenaListSchema,
@@ -57,6 +68,16 @@ function linksFor(c: Context) {
 		arena: (id: string) => get(`/arenas/${encodeURIComponent(id)}`),
 		player: (id: number) => get(`/players/${id}`),
 		matches: (id: number) => get(`/players/${id}/matches`),
+		cosmetics: () => ({
+			href: `${origin}${COSMETICS_PATH}`,
+			method: "POST",
+			type: "text/xml",
+		}),
+		cosmeticsWsdl: () => ({
+			href: `${origin}${COSMETICS_PATH}?wsdl`,
+			method: "GET",
+			type: "text/xml",
+		}),
 		/** WebSocket da partida; o cliente preenche `token` com o JWT. */
 		play: (id: string) => ({
 			href: `${origin.replace(/^http/, "ws")}/arenas/${encodeURIComponent(id)}/play{?token}`,
@@ -154,6 +175,8 @@ app.openapi(
 					sessions: links.sessions(),
 					arenas: links.arenas(),
 					leaderboard: links.leaderboard(),
+					cosmetics: links.cosmetics(),
+					cosmeticsWsdl: links.cosmeticsWsdl(),
 					docs: links.docs(),
 				},
 			},
@@ -218,6 +241,7 @@ app.openapi(
 					arena: links.arena(arena.id),
 					play: links.play(arena.id),
 					leaderboard: links.leaderboard(),
+					cosmetics: links.cosmetics(),
 				},
 			},
 			201,
@@ -386,6 +410,71 @@ app.openapi(
 		return c.json(withArenaLinks(c, arena), 200);
 	},
 );
+
+app.get(COSMETICS_PATH, proxyWsdl);
+app.post(COSMETICS_PATH, proxySoap);
+
+const envelopeSchema = {
+	type: "object" as const,
+	xml: { name: "Envelope", prefix: "soap", namespace: SOAP_ENV_NS },
+};
+const xml = (example: string) => ({
+	"text/xml": { schema: envelopeSchema, example },
+});
+
+app.openAPIRegistry.registerPath({
+	method: "get",
+	path: COSMETICS_PATH,
+	tags: ["Customização (SOAP)"],
+	summary: "WSDL do serviço de customização",
+	description:
+		"Chame com `?wsdl`. O `soap:address` aponta para este gateway. Use o WSDL no SoapUI para montar as requisições.",
+	request: {
+		query: z.object({
+			wsdl: z.string().openapi({
+				param: { name: "wsdl", in: "query" },
+				example: "1",
+				description: "Basta estar presente; o valor é ignorado.",
+			}),
+		}),
+	},
+	responses: {
+		200: { description: "Contrato WSDL.", content: xml(WSDL_EXAMPLE) },
+	},
+});
+app.openAPIRegistry.registerPath({
+	method: "post",
+	path: COSMETICS_PATH,
+	tags: ["Customização (SOAP)"],
+	summary: "Endpoint SOAP 1.1 do serviço de customização",
+	description:
+		"Repassa o Envelope ao serviço em Python. Operações: `ListAccessories`, `GetCustomization` e `SetCustomization`. O `SetCustomization` exige o JWT no `soap:Header` (`<AuthHeader><token>`), não no `Authorization`. Erros voltam como `soap:Fault`.",
+	request: {
+		body: {
+			required: true,
+			content: {
+				"text/xml": {
+					schema: envelopeSchema,
+					examples: SOAP_REQUEST_EXAMPLES,
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: "Envelope com a resposta.",
+			content: xml(SOAP_RESPONSE_EXAMPLE),
+		},
+		500: {
+			description: "Envelope com `soap:Fault`.",
+			content: xml(SOAP_FAULT_EXAMPLE),
+		},
+		502: {
+			description: "Serviço de customização fora do ar (Fault).",
+			content: xml(SOAP_UNAVAILABLE_EXAMPLE),
+		},
+	},
+});
 
 app.openAPIRegistry.registerComponent("securitySchemes", "bearerAuth", {
 	type: "http",

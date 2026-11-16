@@ -6,4 +6,6 @@ export const JWT_SECRET =
 export const PLAYERS_API_URL =
 	process.env.PLAYERS_API_URL ?? "http://127.0.0.1:3001";
 export const GAME_API_URL = process.env.GAME_API_URL ?? "http://127.0.0.1:3002";
+export const COSMETICS_API_URL =
+	process.env.COSMETICS_API_URL ?? "http://127.0.0.1:3003/";
 export const DEFAULT_ARENA_ID = "1";

@@ -3,6 +3,7 @@ import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { type FormEvent, useState } from "react";
 import { ApiError, createSession, type Session } from "./api.ts";
 import { Game, PRESSABLE } from "./Game.tsx";
+import { Wardrobe } from "./Wardrobe.tsx";
 
 const NAME_STORAGE_KEY = "snake-arena:name";
 
@@ -16,6 +17,7 @@ function savedName(): string {
 
 export function App() {
 	const [session, setSession] = useState<Session | null>(null);
+	const [stage, setStage] = useState<"wardrobe" | "game">("wardrobe");
 	const [name, setName] = useState(savedName);
 	const [error, setError] = useState<string | null>(null);
 	const [joining, setJoining] = useState(false);
@@ -33,6 +35,7 @@ export function App() {
 			} catch {
 				// Sem armazenamento local o nome só não fica lembrado.
 			}
+			setStage("wardrobe");
 			setSession(created);
 		} catch (err) {
 			setError(err instanceof ApiError ? err.message : "Erro inesperado.");
@@ -45,7 +48,22 @@ export function App() {
 		// Respeita a preferência do sistema por menos movimento.
 		<MotionConfig reducedMotion="user">
 			<AnimatePresence mode="wait">
-				{session ? (
+				{session && stage === "wardrobe" ? (
+					<motion.div
+						key="wardrobe"
+						className="screen"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						transition={{ duration: 0.2 }}
+					>
+						<Wardrobe
+							session={session}
+							onPlay={() => setStage("game")}
+							onExit={() => setSession(null)}
+						/>
+					</motion.div>
+				) : session ? (
 					<motion.div
 						key="game"
 						className="screen"
@@ -56,6 +74,7 @@ export function App() {
 					>
 						<Game
 							session={session}
+							onWardrobe={() => setStage("wardrobe")}
 							onExit={(reason) => {
 								setSession(null);
 								setError(reason ?? null);
