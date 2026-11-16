@@ -55,6 +55,13 @@ export const PRESSABLE = {
 	whileHover: { scale: 1.03 },
 	whileTap: { scale: 0.96 },
 } as const;
+
+function logWs(event: string, detail?: unknown): void {
+	const style = "color: #22c55e; font-weight: bold";
+	if (detail === undefined) console.log(`%c[ws] ${event}`, style);
+	else console.log(`%c[ws] ${event}`, style, detail);
+}
+
 // A API de jogo registra a partida em paralelo ao aviso de eliminação.
 const RANKING_DELAY_MS = 300;
 
@@ -72,6 +79,7 @@ export function Game({ session, onWardrobe, onExit }: Props) {
 		const socket = socketRef.current;
 		if (socket?.readyState === WebSocket.OPEN) {
 			socket.send(JSON.stringify(message));
+			logWs(`enviada: ${message.type}`, message);
 		}
 	}, []);
 
@@ -93,9 +101,23 @@ export function Game({ session, onWardrobe, onExit }: Props) {
 
 		const socket = new WebSocket(playUrl(session));
 		socketRef.current = socket;
+		let loggedState = false;
+
+		socket.onopen = () => {
+			logWs("conexão aberta", socket.url.split("?")[0]);
+		};
 
 		socket.onmessage = (event) => {
 			const message: ServerMessage = JSON.parse(event.data);
+			if (message.type !== "state") {
+				logWs(`recebida: ${message.type}`, message);
+			} else if (!loggedState) {
+				loggedState = true;
+				logWs(
+					"recebida: state (as próximas chegam a cada tick e não são mostradas)",
+					message,
+				);
+			}
 			if (message.type === "welcome") {
 				scene = new Scene(message.arena, myId);
 			} else if (message.type === "state") {
@@ -129,6 +151,7 @@ export function Game({ session, onWardrobe, onExit }: Props) {
 		};
 
 		socket.onclose = (event) => {
+			logWs("conexão encerrada", { code: event.code, reason: event.reason });
 			if (disposed) return;
 			onExitRef.current(
 				CLOSE_REASONS[event.code] ?? "Conexão com o servidor perdida.",

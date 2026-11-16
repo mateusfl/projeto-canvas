@@ -49,6 +49,10 @@ function send(ws: Socket, message: ServerMessage): void {
 	ws.send(JSON.stringify(message));
 }
 
+function logWs(player: PlayerIdentity, event: string): void {
+	console.log(`[ws] ${player.name} (#${player.id}): ${event}`);
+}
+
 function error(code: string, message: string) {
 	return { error: { code, message } };
 }
@@ -157,6 +161,7 @@ const server = Bun.serve({
 
 		open(ws) {
 			const { arenaId, player } = ws.data;
+			logWs(player, `conexão aberta na arena ${arenaId}`);
 			const room = rooms.get(arenaId);
 			if (!room) {
 				ws.close(CloseCode.ArenaNotFound, "Arena não encontrada.");
@@ -186,6 +191,7 @@ const server = Bun.serve({
 		},
 
 		message(ws, raw) {
+			logWs(ws.data.player, `mensagem recebida ${String(raw)}`);
 			const room = rooms.get(ws.data.arenaId);
 			if (!room || room.sockets.get(ws.data.player.id) !== ws) return;
 
@@ -208,8 +214,12 @@ const server = Bun.serve({
 			}
 		},
 
-		close(ws) {
+		close(ws, code, reason) {
 			const { arenaId, player } = ws.data;
+			logWs(
+				player,
+				`conexão encerrada (código ${code}${reason ? `, ${reason}` : ""})`,
+			);
 			const room = rooms.get(arenaId);
 			// Uma conexão recusada ou substituída não é a dona da cobrinha.
 			if (!room || room.sockets.get(player.id) !== ws) return;

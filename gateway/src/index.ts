@@ -1,6 +1,7 @@
 import { CloseCode, type PlayerIdentity } from "@snake/shared";
 import { app } from "./app.ts";
 import { verifyToken } from "./auth.ts";
+import { printAccessBanner } from "./banner.ts";
 import { GAME_API_URL, HOST, PORT } from "./config.ts";
 
 type ProxyData = {
@@ -16,8 +17,8 @@ const PLAY_PATH = /^\/arenas\/([^/]+)\/play$/;
 const GAME_WS_URL = GAME_API_URL.replace(/^http/, "ws");
 
 /** Códigos reservados não podem ser enviados em um frame de fechamento. */
-function closeCode(code: number): number {
-	return code === 1000 || (code >= 3000 && code <= 4999) ? code : 1011;
+function closeCode(code: number, fallback: number): number {
+	return code === 1000 || (code >= 3000 && code <= 4999) ? code : fallback;
 }
 
 const server = Bun.serve({
@@ -74,7 +75,7 @@ const server = Bun.serve({
 				ws.send(event.data);
 			});
 			upstream.addEventListener("close", (event) => {
-				ws.close(closeCode(event.code), event.reason);
+				ws.close(closeCode(event.code, 1011), event.reason);
 			});
 			upstream.addEventListener("error", () => {
 				ws.close(1011, "Serviço de jogo indisponível.");
@@ -87,11 +88,11 @@ const server = Bun.serve({
 			else pending.push(String(message));
 		},
 
-		close(ws) {
-			ws.data.upstream?.close();
+		close(ws, code, reason) {
+			ws.data.upstream?.close(closeCode(code, 1000), reason);
 		},
 	},
 });
 
 console.log(`Gateway em http://${server.hostname}:${server.port}`);
-console.log(`Documentação em http://localhost:${server.port}/docs`);
+printAccessBanner(server.port ?? PORT);
