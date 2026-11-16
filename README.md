@@ -89,3 +89,8 @@ bun run test   # inclui os testes do serviço SOAP (unittest)
 
 
 Comparação entre os dois estilos e justificativa das escolhas: [docs/soap-vs-rest.md](docs/soap-vs-rest.md).
+
+## WebSocket
+
+Como a partida usa WebSocket, as decisões sobre conexões e mensagens e a justificativa
+frente a polling: [docs/websocket.md](docs/websocket.md).
